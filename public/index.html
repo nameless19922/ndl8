@@ -8,58 +8,65 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <section class="layout">
+<section class="layout">
 
-        <template id="login">
-            <section class="login">
-                <div class="layout__wrapper login__wrapper">
-                    <div class="login__title">Chat Socket IO</div>
-                    <div class="login__input">
-                        <input class="control" type="text" maxlength="14" placeholder="What's your name?" @keyup.enter.prevent="loginUser">
-                    </div>
+    <template id="login">
+        <section class="login">
+            <div class="layout__wrapper login__wrapper">
+                <div class="login__title">Chat Socket IO</div>
+                <div class="login__input">
+                    <input class="control" type="text" maxlength="14" placeholder="What's your name?" @keyup.enter.prevent="loginUser">
                 </div>
-            </section>
-        </template>
+            </div>
+        </section>
+    </template>
 
-        <template id="chat">
-            <section class="chat">
-                <div class="layout__wrapper">
-                    <ul class="chat__messages">
-                        <li class="chat__item">
-                            <span class="chat__item-name">Username</span>
-                            <span class="chat__item-text">w dtw gwrgw g24 rfgw g34g rgweg ergerg</span>
-                        </li>
-                        <li class="chat__item _service">
-                            <span class="chat__item-text">asda qwsd 23 re2r </span>
-                        </li>
-                        <li class="chat__item">
-                            <span class="chat__item-name">Username</span>
-                            <span class="chat__item-text">w dtw gwrgw g24 rfgw g34g rgweg ergerg</span>
-                        </li>
-                        <li class="chat__item">
-                            <span class="chat__item-name">Username</span>
-                            <span class="chat__item-text">w dtw gwrgw g24 rfgw g34g rgweg ergerg</span>
-                        </li>
-                    </ul>
-                    <div class="chat__input">
-                        <input class="control" type="text" placeholder="Message..">
-                    </div>
+    <template id="rooms">
+        <section class="rooms">
+            <div class="layout__wrapper rooms__wrapper">
+                <div class="rooms__input">
+                    <input class="control" type="text" maxlength="14" placeholder="Input room name" @keyup.enter.prevent="addRoom">
                 </div>
-            </section>
-        </template>
+                <ul class="rooms__list" v-for="(room, index) in rooms">
+                    <li class="rooms__item" @click="setRoom(room)">
+                        {{ room.name }}
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </template>
 
-        <div class="layout__body" id="app">
+    <template id="chat">
+        <section class="chat">
+            <div class="layout__wrapper">
+                <div class="chat__online">Online: {{ online }}, room: {{ room }} <a href="javascript:;" @click.prevent="switchRoom">Switch room</a></div>
+                <ul class="chat__messages js-chat">
+                    <li v-for="message in messages" class="chat__item" :class="[message.type === 'service' ? '_service' : '' ]">
+							<span class="chat__item-name" :class="[message.type === 'new-message' ? '_new-message' : '' ]" v-if="message.type !== 'service'">
+								{{ message.name }}
+							</span>
+                        <span class="chat__item-text">{{ message.text }}</span>
+                    </li>
+                </ul>
+                <div class="chat__input">
+                    <input class="control" type="text" placeholder="Message.." @keyup.enter.prevent="addMessage">
+                </div>
+            </div>
+        </section>
+    </template>
 
-            <transition name="component-fade" mode="out-in">
-                <component :is="currentView" @view="changeView"></component>
-            </transition>
+    <div class="layout__body" id="app">
 
-        </div>
-    </section>
+        <transition name="component-fade" mode="out-in">
+            <component :is="currentView" :messages="messages" :username="username" :online="online" :rooms="rooms" :room="room" @showrooms="showRooms" @showchat="showChat"></component>
+        </transition>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.0/vue.js"></script>
+    </div>
+</section>
 
-    <script src="js/script.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.0/vue.js"></script>
+
+<script src="js/script.js"></script>
 </body>
 </html>
