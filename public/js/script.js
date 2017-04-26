@@ -36,7 +36,7 @@
             removeRoom: function (index) {
                 this.state.rooms.splice(index, 1);
             }
-        }
+        };
 
     Vue.component('login', {
         template: '#login',
