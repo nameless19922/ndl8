@@ -151,8 +151,18 @@ template {
 
 }
 
+.rooms__username {
+    color: #333;
+    font-size: 28px;
+}
+
+.rooms__username span {
+    color: #9C27B0;
+}
+
 .rooms__input {
     position: relative;
+    margin-top: 60px;
 }
 
 .rooms__input .control {

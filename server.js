@@ -21,6 +21,10 @@ module.exports = port => {
             handlers.newRoom(room, socket);
         });
 
+        socket.on('get rooms', () => {
+           handlers.getRooms(socket);
+        });
+
         socket.on('join room', room => {
             handlers.joinRoom(room, socket);
         });

@@ -164,7 +164,7 @@
         methods: {
             setView: function (view) {
                 this.currentView = view;
-            },
+            }
         }
     });
 

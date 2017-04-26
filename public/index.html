@@ -24,6 +24,7 @@
     <template id="rooms">
         <section class="rooms">
             <div class="layout__wrapper rooms__wrapper">
+                <div class="rooms__username">Username: <span>{{ shared.username }}</span></div>
                 <div class="rooms__input">
                     <input class="control" type="text" maxlength="14" placeholder="Input room name" @keyup.enter.prevent="addRoom" v-model="inputRoom">
                     <button class="send" @click.prevent="addRoom"></button>
