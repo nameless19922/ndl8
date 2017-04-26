@@ -25,9 +25,10 @@
         <section class="rooms">
             <div class="layout__wrapper rooms__wrapper">
                 <div class="rooms__input">
-                    <input class="control" type="text" maxlength="14" placeholder="Input room name" @keyup.enter.prevent="addRoom">
+                    <input class="control" type="text" maxlength="14" placeholder="Input room name" @keyup.enter.prevent="addRoom" v-model="inputRoom">
+                    <button class="send" @click.prevent="addRoom"></button>
                 </div>
-                <ul class="rooms__list" v-for="(room, index) in rooms">
+                <ul class="rooms__list" v-for="(room, index) in shared.rooms">
                     <li class="rooms__item" @click="setRoom(room)">
                         {{ room.name }}
                     </li>
@@ -39,9 +40,9 @@
     <template id="chat">
         <section class="chat">
             <div class="layout__wrapper">
-                <div class="chat__online">Online: {{ online }}, room: {{ room }} <a href="javascript:;" @click.prevent="switchRoom">Switch room</a></div>
+                <div class="chat__online">Online: {{ shared.online }}, room: {{ shared.room }} <a href="javascript:;" @click.prevent="switchRoom">Switch room</a></div>
                 <ul class="chat__messages js-chat">
-                    <li v-for="message in messages" class="chat__item" :class="[message.type === 'service' ? '_service' : '' ]">
+                    <li v-for="message in shared.messages" class="chat__item" :class="[message.type === 'service' ? '_service' : '']">
 							<span class="chat__item-name" :class="[message.type === 'new-message' ? '_new-message' : '' ]" v-if="message.type !== 'service'">
 								{{ message.name }}
 							</span>
@@ -49,7 +50,8 @@
                     </li>
                 </ul>
                 <div class="chat__input">
-                    <input class="control" type="text" placeholder="Message.." @keyup.enter.prevent="addMessage">
+                    <input class="control" type="text" placeholder="Message.." @keyup.enter.prevent="addMessage" v-model="inputMessage">
+                    <button class="send" @click.prevent="addMessage"></button>
                 </div>
             </div>
         </section>
@@ -58,7 +60,7 @@
     <div class="layout__body" id="app">
 
         <transition name="component-fade" mode="out-in">
-            <component :is="currentView" :messages="messages" :username="username" :online="online" :rooms="rooms" :room="room" @showrooms="showRooms" @showchat="showChat"></component>
+            <component :is="currentView" @changeview="setView"></component>
         </transition>
 
     </div>

@@ -1,6 +1,4 @@
 (function () {
-    var socket = io();
-
     function Message(type, name, text) {
         this.type = type;
         this.name = name;
@@ -11,8 +9,43 @@
         this.name = name;
     }
 
+    var socket = io(),
+
+        store = {
+            state: {
+                rooms    : [],
+                messages : [],
+
+                username : '',
+                room     : '',
+                online   : 0
+            },
+
+            addMessage: function (message) {
+                this.state.messages.push(message);
+            },
+
+            clearMessages: function () {
+                this.state.messages.splice(0);
+            },
+
+            addRoom: function (room) {
+                this.state.rooms.push(room);
+            },
+
+            removeRoom: function (index) {
+                this.state.rooms.splice(index, 1);
+            }
+        }
+
     Vue.component('login', {
         template: '#login',
+
+        data: function () {
+            return {
+                shared: store.state
+            }
+        },
 
         methods: {
             loginUser: function (e) {
@@ -20,7 +53,9 @@
 
                 if (username.length) {
                     socket.emit('add user', username);
-                    this.$emit('showrooms', username);
+
+                    this.shared.username = username;
+                    this.$emit('changeview', 'rooms');
                 }
 
                 e.target.value = '';
@@ -31,21 +66,26 @@
     Vue.component('rooms', {
         template: '#rooms',
 
-        props: ['rooms', 'username'],
+        data: function () {
+            return {
+                shared    : store.state,
+                inputRoom : ''
+            }
+        },
 
         methods: {
-            addRoom: function (e) {
-                var room   = e.target.value.trim(),
+            addRoom: function () {
+                var room   = this.inputRoom.trim(),
                     result = 0;
 
                 if (room.length) {
-                    result = this.rooms.filter(function (item) {
+                    result = this.shared.rooms.filter(function (item) {
                         return item.name === room;
-                    })
+                    });
 
                     if (!result.length) {
                         socket.emit('new room', room);
-                        this.rooms.push(
+                        store.addRoom(
                             new Room(room)
                         );
                     } else {
@@ -53,17 +93,19 @@
                     }
                 }
 
-                e.target.value = '';
+                this.inputRoom = '';
             },
             
             setRoom: function (room) {
                 socket.emit('join room', room.name);
-                this.$emit('showchat', room.name);
+
+                this.shared.room = room.name;
+                this.$emit('changeview', 'chat');
             },
 
             removeRoom: function (index) {
-                if (this.rooms.length) {
-                    this.rooms.splice(index, 1);
+                if (this.shared.rooms.length) {
+                    store.removeRoom(index);
                 }
             }
         }
@@ -72,28 +114,34 @@
     Vue.component('chat', {
         template: '#chat',
 
-        props: ['messages', 'username', 'online', 'room'],
+        data: function () {
+            return {
+                shared       : store.state,
+                inputMessage : ''
+            }
+        },
 
         methods: {
-            addMessage: function (e) {
-                var message = e.target.value.trim();
+            addMessage: function () {
+                var message = this.inputMessage.trim();
 
                 if (message.length) {
                     socket.emit('new message', message);
-                    this.messages.push(
-                        new Message('message', this.username + ' (you)', message)
+                    store.addMessage(
+                        new Message('message', this.shared.username + ' (you)', message)
                     );
 
                     this.scrollToEnd();
                 }
 
-                e.target.value = '';
+                this.inputMessage = '';
             },
 
             switchRoom: function () {
-                this.$emit('showrooms', this.username);
+                this.$emit('changeview', 'rooms');
                 socket.emit('leave room');
-                this.messages.splice(0);
+
+                store.clearMessages();
             },
 
             scrollToEnd: function() {
@@ -110,68 +158,54 @@
         components: ['login', 'chat'],
 
         data: {
-            currentView : 'login',
-            username    : '',
-            room        : '',
-            messages    : [],
-            rooms       : [],
-            online      : 0,
-            connected   : false
+            currentView: 'login'
         },
 
         methods: {
-            showChat: function (room) {
-                this.currentView = 'chat';
-                this.room        = room;
+            setView: function (view) {
+                this.currentView = view;
             },
-
-            showRooms: function (username) {
-                this.currentView = 'rooms';
-                this.username    = username;
-            }
         }
     });
 
     socket.on('login', function (data) {
-        vm.messages.push(
+        store.addMessage(
             new Message('service', data.username, 'Hello, ' + data.username + '!')
         );
 
-        vm.online    = data.online;
-        vm.connected = true;
+        store.state.online = data.online;
     });
 
     socket.on('rooms', function (data) {
         if (data.rooms.length) {
-            vm.rooms = data.rooms.slice();
+            store.state.rooms = data.rooms.slice();
         }
     })
 
     socket.on('user joined', function (data) {
-        vm.messages.push(
+        store.addMessage(
             new Message('service', data.username, data.username + ' connected')
         );
 
-        vm.online = data.online;
+        store.state.online = data.online;
     });
 
     socket.on('user left', function (data) {
-        vm.messages.push(
+        store.addMessage(
             new Message('service', data.username, data.username + ' disconnected')
         );
 
-        vm.online    = data.online;
-        vm.connected = false;
+        store.state.online = data.online;
     });
 
     socket.on('new room', function (data) {
-        vm.rooms.push(
+        store.addRoom(
             new Room(data.room)
         );
     });
 
     socket.on('new message', function (data) {
-        vm.messages.push(
+        store.addMessage(
             new Message('new-message', data.username, data.message)
         );
     });
